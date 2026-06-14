@@ -4,12 +4,15 @@ import random
 from aiogram import Bot, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import Message, ReactionTypeEmoji
+from aiogram.utils.chat_action import ChatActionSender
 
 import config
 
 
 bot = Bot(token=config.TOKEN)
 dp = Dispatcher()
+
+BOT_USER_ID: int | None = None
 
 
 def get_mention(message: Message) -> str:
@@ -58,6 +61,63 @@ def find_target_trigger_reply(message: Message) -> str | None:
     return None
 
 
+def is_reply_to_bot(message: Message) -> bool:
+    if not message.reply_to_message:
+        return False
+
+    if not message.reply_to_message.from_user:
+        return False
+
+    return message.reply_to_message.from_user.id == BOT_USER_ID
+
+
+async def reply_with_typing(message: Message, text: str) -> None:
+    typing_seconds = random.randint(
+        config.TYPING_MIN_SECONDS,
+        config.TYPING_MAX_SECONDS,
+    )
+
+    async with ChatActionSender.typing(
+        bot=bot,
+        chat_id=message.chat.id,
+    ):
+        await asyncio.sleep(typing_seconds)
+
+    await message.reply(text)
+
+
+async def answer_with_typing(message: Message, text: str) -> None:
+    typing_seconds = random.randint(
+        config.TYPING_MIN_SECONDS,
+        config.TYPING_MAX_SECONDS,
+    )
+
+    async with ChatActionSender.typing(
+        bot=bot,
+        chat_id=message.chat.id,
+    ):
+        await asyncio.sleep(typing_seconds)
+
+    await message.answer(text)
+
+
+async def delayed_reply_to_target(message: Message) -> None:
+    delay = random.randint(
+        config.DELAYED_REPLY_MIN_SECONDS,
+        config.DELAYED_REPLY_MAX_SECONDS,
+    )
+
+    await asyncio.sleep(delay)
+
+    phrase = random.choice(config.DELAYED_TARGET_REPLIES)
+    text = render_phrase(phrase, message)
+
+    try:
+        await reply_with_typing(message, text)
+    except Exception:
+        pass
+
+
 async def try_set_reaction(message: Message) -> None:
     if random.random() > config.REACTION_CHANCE:
         return
@@ -71,8 +131,9 @@ async def try_set_reaction(message: Message) -> None:
 
 @dp.message(Command("start"))
 async def start_handler(message: Message):
-    await message.answer(
-        "Я Был Кузнец. Я здесь, чтобы наблюдать, осуждать и иногда унижать логику."
+    await answer_with_typing(
+        message,
+        "Я Был Кузнец. Я здесь, чтобы наблюдать, осуждать и иногда унижать логику.",
     )
 
 
@@ -95,8 +156,9 @@ async def stats_handler(message: Message):
         for line in config.STATS_LINES
     ]
 
-    await message.answer(
-        "Статистика наблюдаемого объекта:\n\n" + "\n".join(lines)
+    await answer_with_typing(
+        message,
+        "Статистика наблюдаемого объекта:\n\n" + "\n".join(lines),
     )
 
 
@@ -105,9 +167,9 @@ async def whoami_handler(message: Message):
     if not message.from_user:
         return
 
-    await message.answer(
+    await answer_with_typing(
+        message,
         f"Твой Telegram ID: `{message.from_user.id}`",
-        parse_mode="Markdown"
     )
 
 
@@ -124,6 +186,15 @@ async def message_handler(message: Message):
 
     await try_set_reaction(message)
 
+    # Если кто-то отвечает на сообщение бота
+    if is_reply_to_bot(message):
+        if random.random() < config.BOT_REPLY_CHANCE:
+            await reply_with_typing(
+                message,
+                random.choice(config.BOT_REPLY_PHRASES),
+            )
+            return
+
     robot_triggers = [
         "робот",
         "я робот",
@@ -135,37 +206,55 @@ async def message_handler(message: Message):
 
     if any(trigger in lower_text for trigger in robot_triggers):
         if random.random() < config.ROBOT_REFERENCE_CHANCE:
-            await message.reply(random.choice(config.ROBOT_REFERENCES))
+            await reply_with_typing(
+                message,
+                random.choice(config.ROBOT_REFERENCES),
+            )
             return
 
     if is_target(message):
+        # Отложенный ответ запускается отдельной задачей и не блокирует бота
+        if random.random() < config.DELAYED_TARGET_REPLY_CHANCE:
+            asyncio.create_task(delayed_reply_to_target(message))
+
         trigger_reply = find_target_trigger_reply(message)
 
         if trigger_reply and random.random() < config.TARGET_TRIGGER_REPLY_CHANCE:
-            await message.reply(trigger_reply)
+            await reply_with_typing(message, trigger_reply)
             return
 
         if is_long_message(message) and random.random() < config.LONG_MESSAGE_CHANCE:
             phrase = random.choice(config.LONG_MESSAGE_TROLLS)
-            await message.reply(render_phrase(phrase, message))
+            await reply_with_typing(message, render_phrase(phrase, message))
             return
 
         if random.random() < config.TROLL_TARGET_CHANCE:
             phrase = random.choice(config.TROLL_PHRASES)
-            await message.reply(render_phrase(phrase, message))
+            await reply_with_typing(message, render_phrase(phrase, message))
             return
 
     if random.random() < config.CUSTOM_REPLY_CHANCE:
-        await message.reply(random.choice(config.CUSTOM_RANDOM_REPLIES))
+        await reply_with_typing(
+            message,
+            random.choice(config.CUSTOM_RANDOM_REPLIES),
+        )
         return
 
     if random.random() < config.RANDOM_REPLY_CHANCE:
-        await message.reply(random.choice(config.RANDOM_REPLIES))
+        await reply_with_typing(
+            message,
+            random.choice(config.RANDOM_REPLIES),
+        )
         return
 
 
 async def main():
-    print("Был Кузнец запущен.")
+    global BOT_USER_ID
+
+    me = await bot.get_me()
+    BOT_USER_ID = me.id
+
+    print(f"Был Кузнец запущен. ID бота: {BOT_USER_ID}")
     await dp.start_polling(bot)
 
 

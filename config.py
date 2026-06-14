@@ -2,11 +2,11 @@ TOKEN = "8908413009:AAHZ3SXEyaMYSma_KQPbXzZbDPwtm7FBWoE"
 
 TARGET_USER_ID = 232897558
 
-TROLL_TARGET_CHANCE = 0.08
+TROLL_TARGET_CHANCE = 0.28
 LONG_MESSAGE_CHANCE = 0.25
-TARGET_TRIGGER_REPLY_CHANCE = 0.25
+TARGET_TRIGGER_REPLY_CHANCE = 0.45
 
-RANDOM_REPLY_CHANCE = 0.005
+RANDOM_REPLY_CHANCE = 0.05
 CUSTOM_REPLY_CHANCE = 0.003
 ROBOT_REFERENCE_CHANCE = 0.005
 REACTION_CHANCE = 0.02
@@ -16,10 +16,10 @@ LONG_MESSAGE_LENGTH = 120
 BOT_NAME = "Был Кузнец"
 
 NICKNAMES = [
-    "Капитан Очевидность",
-    "Повелитель Бесполезной Информации",
-    "Главный Эксперт Без Экспертизы",
-    "Независимый Исследователь Чепухи",
+    "Капитан Марковой Вниз",
+    "Зятёк",
+    "Дядька",
+    "Газовик",
     "Любитель солнца",
     "Тумба-юмба",
 ]
@@ -72,6 +72,14 @@ TARGET_TRIGGER_REPLIES = {
     "Мы больше не нужны": [
         "чел, ты и до этого не сильно то полезен был",
         "чел, ожидаемый результат",
+    ],
+    "денег нет": [
+        "ой бляяяя, опять чел из Чижика прибеднется",
+        "бляяя, самый нищий в чате",
+    ],
+    "опять работать": [
+        "Опять езиды за работу затирают",
+        "Работать надо. Может из Чижика в Пятерочку переведут",
     ],
 }
 

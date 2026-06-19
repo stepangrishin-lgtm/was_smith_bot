@@ -4,7 +4,7 @@ TARGET_USER_ID = 232897558
 
 TROLL_TARGET_CHANCE = 0.10
 LONG_MESSAGE_CHANCE = 0.25
-TARGET_TRIGGER_REPLY_CHANCE = 0.65
+TARGET_TRIGGER_REPLY_CHANCE = 0.85
 
 RANDOM_REPLY_CHANCE = 0.01
 CUSTOM_REPLY_CHANCE = 0.003
@@ -145,6 +145,10 @@ TARGET_TRIGGER_REPLIES = {
         "Братиш, сильно не заёбывай по пустякам",
         "По-братски, постарайся больше не отмечать меня в чате. Мне если надо, я сам напишу, доебусь там туда-сюда, без твоих команд ебаных",
         "чел, не заёбывай",
+    ],
+    "поздравляй": [
+        "поздравляю нахуй",
+        "поздравляю епта",
     ],
 }
 
